@@ -1,0 +1,14 @@
+Server:
+  IP: 127.0.0.1
+  Port: 5000
+
+Redis:
+  IP: 47.103.116.215
+  Port: 4396
+
+Mysql:
+  IP: 47.103.116.215
+  Port: 4397
+  User: root
+  Password: root
+  Dbname: BWKDatabase

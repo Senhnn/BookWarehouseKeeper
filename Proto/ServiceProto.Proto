@@ -1,0 +1,99 @@
+syntax = "proto3";
+package Services;
+option go_package = "./Services";
+
+enum Role {
+    R_NONE = 0;
+    ADMIN = 1;
+    WORKER = 2;
+}
+
+
+// admin 接口
+// 添加书籍库存
+message AddBookNumRequest {
+    string ISBN = 1;
+    uint64 add_num = 2;
+}
+message AddBookNumResponse {
+    int32 ret = 1;
+    string error_info = 2;
+}
+
+// 上架新商品
+message AddNewBookRequest {
+    string ISBN = 1;
+    uint64 num = 2;
+}
+message AddNewBookResponse {
+    int32 ret = 1;
+    string error_info = 2;
+}
+
+// 下架商品
+message DelBookRequest {
+    string ISBN = 1;
+}
+message DelBookResponse {
+    int32 ret = 1;
+    string error_info = 2;
+}
+
+// 减少书籍库存
+message DecBookRequest {
+    string ISBN = 1;
+    uint64 dec_num = 2;
+}
+message DecBookResponse {
+    int32 ret = 1;
+    string error_info = 2;
+}
+
+// 删除书籍
+message RemoveBookRequest {
+    int32 ISBN = 1;
+}
+message RemoveBookResponse {
+    int32 ret = 1;
+    string error_info = 2;
+}
+
+service AdminService {
+    // 增加书籍库存
+    rpc AddBookNum (AddBookNumRequest) returns (AddBookNumResponse);
+    // 减少书籍库存
+    rpc DecBookNum (DecBookRequest) returns (DecBookResponse);
+    // 上架新书
+    rpc AddNewBook(AddNewBookRequest) returns (AddNewBookResponse);
+    // 下架书籍
+    rpc DelBook(DelBookRequest) returns (DelBookResponse);
+    // 删除书籍
+    rpc RemoveBook(RemoveBookRequest) returns (RemoveBookResponse);
+}
+
+// worker 接口
+// 查询所有书籍数量
+message GetAllBookRequest {}
+message GetAllBookResponse {
+    int32 ret = 1;
+    int32 ISBN = 2;
+    uint32 num = 3;
+    string error_info = 4;
+}
+
+// 查询数据数量
+message GetBookNumRequest {
+    int32 ISBN = 1;
+}
+message GetBookNumResponse {
+    int32 ret = 1;
+    uint32 num = 2;
+    string error_info = 3;
+}
+
+service WorkerService {
+    // 查询所有书籍数量
+    rpc GetAllBook(stream GetAllBookRequest) returns (stream GetAllBookResponse);
+    // 查询指定书籍数量
+    rpc GetBookNum(GetBookNumRequest) returns (GetBookNumResponse);
+}
