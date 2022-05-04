@@ -8,6 +8,27 @@ enum Role {
     WORKER = 2;
 }
 
+message BookInfo {
+    // isbn号码
+    string isbn = 1;
+    // 作者
+    string author = 2;
+    // 作者国籍
+    string nation = 3;
+    // 书名
+    string book_name = 4;
+    // 书籍数量
+    uint64 book_num = 5;
+    // 售卖状态
+    BookSaleStatus status = 6;
+    // 数据类型
+    string BookType = 7;
+}
+
+message AuthorInfo {
+    string name = 1;
+    string nation = 2;
+}
 
 // admin 接口
 // 添加书籍库存
@@ -20,9 +41,9 @@ message AddBookNumResponse {
     string error_info = 2;
 }
 
-// 上架新商品
+// 添加新书
 message AddNewBookRequest {
-    string ISBN = 1;
+    BookInfo book_info = 1;
     uint64 num = 2;
 }
 message AddNewBookResponse {
@@ -30,13 +51,18 @@ message AddNewBookResponse {
     string error_info = 2;
 }
 
-// 下架商品
-message DelBookRequest {
-    string ISBN = 1;
+enum BookSaleStatus {
+    CLOSE = 0;
+    START = 1;
 }
-message DelBookResponse {
+// 打开或者关闭书籍售卖
+message BookSaleRequest {
+    string isbn = 1;
+    int32 set_status = 2;
+}
+message BookSaleResponse {
     int32 ret = 1;
-    string error_info = 2;
+    string ErrorInfo = 2;
 }
 
 // 减少书籍库存
@@ -51,7 +77,7 @@ message DecBookResponse {
 
 // 删除书籍
 message RemoveBookRequest {
-    int32 ISBN = 1;
+    string ISBN = 1;
 }
 message RemoveBookResponse {
     int32 ret = 1;
@@ -64,26 +90,34 @@ service AdminService {
     // 减少书籍库存
     rpc DecBookNum (DecBookRequest) returns (DecBookResponse);
     // 上架新书
-    rpc AddNewBook(AddNewBookRequest) returns (AddNewBookResponse);
-    // 下架书籍
-    rpc DelBook(DelBookRequest) returns (DelBookResponse);
+    rpc AddNewBook (AddNewBookRequest) returns (AddNewBookResponse);
     // 删除书籍
-    rpc RemoveBook(RemoveBookRequest) returns (RemoveBookResponse);
+    rpc RemoveBook (RemoveBookRequest) returns (RemoveBookResponse);
+    // 打开或者关闭书籍售卖
+    rpc StartOrCloseBookSale (BookSaleRequest) returns (BookSaleResponse);
 }
 
 // worker 接口
+
 // 查询所有书籍数量
 message GetAllBookRequest {}
 message GetAllBookResponse {
     int32 ret = 1;
-    int32 ISBN = 2;
-    uint32 num = 3;
-    string error_info = 4;
+    string error_info = 2;
+    repeated BookInfo book_list = 3;
 }
 
-// 查询数据数量
+// 查询单个书籍信息
+message GetSingleBookRequest {}
+message GetSingleBookResponse {
+    int32 ret = 1;
+    string error_info = 2;
+    repeated BookInfo book_list = 3;
+}
+
+// 查询书籍数量
 message GetBookNumRequest {
-    int32 ISBN = 1;
+    string isbn = 1;
 }
 message GetBookNumResponse {
     int32 ret = 1;
@@ -91,9 +125,38 @@ message GetBookNumResponse {
     string error_info = 3;
 }
 
+// 购买书籍
+message BuyBookRequest {
+    repeated BuyBookInfo book_list = 1;
+}
+message BuyBookResponse {
+    int32 ret = 1;
+    uint32 num = 2;
+    string error_info = 3;
+    repeated BuyBookInfo book_list = 4;
+}
+message BuyBookInfo {
+    string isbn = 1;
+    uint32 buy_num = 2;
+}
+
+message GetBooksByAuthorRequest {
+    string author_name = 1;
+}
+message GetBooksByAuthorResponse {
+    int32 ret = 1;
+    string error_info = 2;
+    AuthorInfo author_info = 3;
+    repeated BookInfo book_info = 4;
+}
+
 service WorkerService {
     // 查询所有书籍数量
-    rpc GetAllBook(stream GetAllBookRequest) returns (stream GetAllBookResponse);
+    rpc GetAllBook(GetAllBookRequest) returns (GetAllBookResponse);
     // 查询指定书籍数量
     rpc GetBookNum(GetBookNumRequest) returns (GetBookNumResponse);
+    // 购买书籍
+    rpc BuyBook(BuyBookRequest) returns (BuyBookResponse);
+    // 查询指定作者的所有作品
+    rpc GetBooksByAuthor(GetBooksByAuthorRequest) returns (GetBooksByAuthorResponse);
 }

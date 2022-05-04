@@ -36,7 +36,7 @@ func MysqlInit() {
 
 func mysqlCreate() {
 	// 迁移
-	MysqlClient().MysqlDB().AutoMigrate(&Model.BookNum{}, &Model.Book{})
+	MysqlClient().MysqlDB().AutoMigrate(&Model.Book{})
 	// 设置连接池的最大数量
 	db, err := MysqlClient().mysqlDb.DB()
 	if err != nil {

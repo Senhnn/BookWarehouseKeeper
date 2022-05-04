@@ -23,5 +23,4 @@ func Init() {
 			fmt.Println("config read succ!")
 		}
 	}
-
 }

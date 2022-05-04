@@ -28,10 +28,10 @@ type AdminServiceClient interface {
 	DecBookNum(ctx context.Context, in *DecBookRequest, opts ...grpc.CallOption) (*DecBookResponse, error)
 	// 上架新书
 	AddNewBook(ctx context.Context, in *AddNewBookRequest, opts ...grpc.CallOption) (*AddNewBookResponse, error)
-	// 下架书籍
-	DelBook(ctx context.Context, in *DelBookRequest, opts ...grpc.CallOption) (*DelBookResponse, error)
 	// 删除书籍
 	RemoveBook(ctx context.Context, in *RemoveBookRequest, opts ...grpc.CallOption) (*RemoveBookResponse, error)
+	// 打开或者关闭书籍售卖
+	StartOrCloseBookSale(ctx context.Context, in *BookSaleRequest, opts ...grpc.CallOption) (*BookSaleResponse, error)
 }
 
 type adminServiceClient struct {
@@ -69,18 +69,18 @@ func (c *adminServiceClient) AddNewBook(ctx context.Context, in *AddNewBookReque
 	return out, nil
 }
 
-func (c *adminServiceClient) DelBook(ctx context.Context, in *DelBookRequest, opts ...grpc.CallOption) (*DelBookResponse, error) {
-	out := new(DelBookResponse)
-	err := c.cc.Invoke(ctx, "/Services.AdminService/DelBook", in, out, opts...)
+func (c *adminServiceClient) RemoveBook(ctx context.Context, in *RemoveBookRequest, opts ...grpc.CallOption) (*RemoveBookResponse, error) {
+	out := new(RemoveBookResponse)
+	err := c.cc.Invoke(ctx, "/Services.AdminService/RemoveBook", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *adminServiceClient) RemoveBook(ctx context.Context, in *RemoveBookRequest, opts ...grpc.CallOption) (*RemoveBookResponse, error) {
-	out := new(RemoveBookResponse)
-	err := c.cc.Invoke(ctx, "/Services.AdminService/RemoveBook", in, out, opts...)
+func (c *adminServiceClient) StartOrCloseBookSale(ctx context.Context, in *BookSaleRequest, opts ...grpc.CallOption) (*BookSaleResponse, error) {
+	out := new(BookSaleResponse)
+	err := c.cc.Invoke(ctx, "/Services.AdminService/StartOrCloseBookSale", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -97,10 +97,10 @@ type AdminServiceServer interface {
 	DecBookNum(context.Context, *DecBookRequest) (*DecBookResponse, error)
 	// 上架新书
 	AddNewBook(context.Context, *AddNewBookRequest) (*AddNewBookResponse, error)
-	// 下架书籍
-	DelBook(context.Context, *DelBookRequest) (*DelBookResponse, error)
 	// 删除书籍
 	RemoveBook(context.Context, *RemoveBookRequest) (*RemoveBookResponse, error)
+	// 打开或者关闭书籍售卖
+	StartOrCloseBookSale(context.Context, *BookSaleRequest) (*BookSaleResponse, error)
 	mustEmbedUnimplementedAdminServiceServer()
 }
 
@@ -117,11 +117,11 @@ func (UnimplementedAdminServiceServer) DecBookNum(context.Context, *DecBookReque
 func (UnimplementedAdminServiceServer) AddNewBook(context.Context, *AddNewBookRequest) (*AddNewBookResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AddNewBook not implemented")
 }
-func (UnimplementedAdminServiceServer) DelBook(context.Context, *DelBookRequest) (*DelBookResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method DelBook not implemented")
-}
 func (UnimplementedAdminServiceServer) RemoveBook(context.Context, *RemoveBookRequest) (*RemoveBookResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RemoveBook not implemented")
+}
+func (UnimplementedAdminServiceServer) StartOrCloseBookSale(context.Context, *BookSaleRequest) (*BookSaleResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method StartOrCloseBookSale not implemented")
 }
 func (UnimplementedAdminServiceServer) mustEmbedUnimplementedAdminServiceServer() {}
 
@@ -190,24 +190,6 @@ func _AdminService_AddNewBook_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
-func _AdminService_DelBook_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(DelBookRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(AdminServiceServer).DelBook(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/Services.AdminService/DelBook",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AdminServiceServer).DelBook(ctx, req.(*DelBookRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _AdminService_RemoveBook_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(RemoveBookRequest)
 	if err := dec(in); err != nil {
@@ -222,6 +204,24 @@ func _AdminService_RemoveBook_Handler(srv interface{}, ctx context.Context, dec 
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(AdminServiceServer).RemoveBook(ctx, req.(*RemoveBookRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AdminService_StartOrCloseBookSale_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(BookSaleRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AdminServiceServer).StartOrCloseBookSale(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/Services.AdminService/StartOrCloseBookSale",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AdminServiceServer).StartOrCloseBookSale(ctx, req.(*BookSaleRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -246,12 +246,12 @@ var AdminService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _AdminService_AddNewBook_Handler,
 		},
 		{
-			MethodName: "DelBook",
-			Handler:    _AdminService_DelBook_Handler,
-		},
-		{
 			MethodName: "RemoveBook",
 			Handler:    _AdminService_RemoveBook_Handler,
+		},
+		{
+			MethodName: "StartOrCloseBookSale",
+			Handler:    _AdminService_StartOrCloseBookSale_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
@@ -263,9 +263,13 @@ var AdminService_ServiceDesc = grpc.ServiceDesc{
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type WorkerServiceClient interface {
 	// 查询所有书籍数量
-	GetAllBook(ctx context.Context, opts ...grpc.CallOption) (WorkerService_GetAllBookClient, error)
+	GetAllBook(ctx context.Context, in *GetAllBookRequest, opts ...grpc.CallOption) (*GetAllBookResponse, error)
 	// 查询指定书籍数量
 	GetBookNum(ctx context.Context, in *GetBookNumRequest, opts ...grpc.CallOption) (*GetBookNumResponse, error)
+	// 购买书籍
+	BuyBook(ctx context.Context, in *BuyBookRequest, opts ...grpc.CallOption) (*BuyBookResponse, error)
+	// 查询指定作者的所有作品
+	GetBooksByAuthor(ctx context.Context, in *GetBooksByAuthorRequest, opts ...grpc.CallOption) (*GetBooksByAuthorResponse, error)
 }
 
 type workerServiceClient struct {
@@ -276,35 +280,13 @@ func NewWorkerServiceClient(cc grpc.ClientConnInterface) WorkerServiceClient {
 	return &workerServiceClient{cc}
 }
 
-func (c *workerServiceClient) GetAllBook(ctx context.Context, opts ...grpc.CallOption) (WorkerService_GetAllBookClient, error) {
-	stream, err := c.cc.NewStream(ctx, &WorkerService_ServiceDesc.Streams[0], "/Services.WorkerService/GetAllBook", opts...)
+func (c *workerServiceClient) GetAllBook(ctx context.Context, in *GetAllBookRequest, opts ...grpc.CallOption) (*GetAllBookResponse, error) {
+	out := new(GetAllBookResponse)
+	err := c.cc.Invoke(ctx, "/Services.WorkerService/GetAllBook", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
-	x := &workerServiceGetAllBookClient{stream}
-	return x, nil
-}
-
-type WorkerService_GetAllBookClient interface {
-	Send(*GetAllBookRequest) error
-	Recv() (*GetAllBookResponse, error)
-	grpc.ClientStream
-}
-
-type workerServiceGetAllBookClient struct {
-	grpc.ClientStream
-}
-
-func (x *workerServiceGetAllBookClient) Send(m *GetAllBookRequest) error {
-	return x.ClientStream.SendMsg(m)
-}
-
-func (x *workerServiceGetAllBookClient) Recv() (*GetAllBookResponse, error) {
-	m := new(GetAllBookResponse)
-	if err := x.ClientStream.RecvMsg(m); err != nil {
-		return nil, err
-	}
-	return m, nil
+	return out, nil
 }
 
 func (c *workerServiceClient) GetBookNum(ctx context.Context, in *GetBookNumRequest, opts ...grpc.CallOption) (*GetBookNumResponse, error) {
@@ -316,14 +298,36 @@ func (c *workerServiceClient) GetBookNum(ctx context.Context, in *GetBookNumRequ
 	return out, nil
 }
 
+func (c *workerServiceClient) BuyBook(ctx context.Context, in *BuyBookRequest, opts ...grpc.CallOption) (*BuyBookResponse, error) {
+	out := new(BuyBookResponse)
+	err := c.cc.Invoke(ctx, "/Services.WorkerService/BuyBook", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *workerServiceClient) GetBooksByAuthor(ctx context.Context, in *GetBooksByAuthorRequest, opts ...grpc.CallOption) (*GetBooksByAuthorResponse, error) {
+	out := new(GetBooksByAuthorResponse)
+	err := c.cc.Invoke(ctx, "/Services.WorkerService/GetBooksByAuthor", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // WorkerServiceServer is the server API for WorkerService service.
 // All implementations must embed UnimplementedWorkerServiceServer
 // for forward compatibility
 type WorkerServiceServer interface {
 	// 查询所有书籍数量
-	GetAllBook(WorkerService_GetAllBookServer) error
+	GetAllBook(context.Context, *GetAllBookRequest) (*GetAllBookResponse, error)
 	// 查询指定书籍数量
 	GetBookNum(context.Context, *GetBookNumRequest) (*GetBookNumResponse, error)
+	// 购买书籍
+	BuyBook(context.Context, *BuyBookRequest) (*BuyBookResponse, error)
+	// 查询指定作者的所有作品
+	GetBooksByAuthor(context.Context, *GetBooksByAuthorRequest) (*GetBooksByAuthorResponse, error)
 	mustEmbedUnimplementedWorkerServiceServer()
 }
 
@@ -331,11 +335,17 @@ type WorkerServiceServer interface {
 type UnimplementedWorkerServiceServer struct {
 }
 
-func (UnimplementedWorkerServiceServer) GetAllBook(WorkerService_GetAllBookServer) error {
-	return status.Errorf(codes.Unimplemented, "method GetAllBook not implemented")
+func (UnimplementedWorkerServiceServer) GetAllBook(context.Context, *GetAllBookRequest) (*GetAllBookResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetAllBook not implemented")
 }
 func (UnimplementedWorkerServiceServer) GetBookNum(context.Context, *GetBookNumRequest) (*GetBookNumResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetBookNum not implemented")
+}
+func (UnimplementedWorkerServiceServer) BuyBook(context.Context, *BuyBookRequest) (*BuyBookResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method BuyBook not implemented")
+}
+func (UnimplementedWorkerServiceServer) GetBooksByAuthor(context.Context, *GetBooksByAuthorRequest) (*GetBooksByAuthorResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetBooksByAuthor not implemented")
 }
 func (UnimplementedWorkerServiceServer) mustEmbedUnimplementedWorkerServiceServer() {}
 
@@ -350,30 +360,22 @@ func RegisterWorkerServiceServer(s grpc.ServiceRegistrar, srv WorkerServiceServe
 	s.RegisterService(&WorkerService_ServiceDesc, srv)
 }
 
-func _WorkerService_GetAllBook_Handler(srv interface{}, stream grpc.ServerStream) error {
-	return srv.(WorkerServiceServer).GetAllBook(&workerServiceGetAllBookServer{stream})
-}
-
-type WorkerService_GetAllBookServer interface {
-	Send(*GetAllBookResponse) error
-	Recv() (*GetAllBookRequest, error)
-	grpc.ServerStream
-}
-
-type workerServiceGetAllBookServer struct {
-	grpc.ServerStream
-}
-
-func (x *workerServiceGetAllBookServer) Send(m *GetAllBookResponse) error {
-	return x.ServerStream.SendMsg(m)
-}
-
-func (x *workerServiceGetAllBookServer) Recv() (*GetAllBookRequest, error) {
-	m := new(GetAllBookRequest)
-	if err := x.ServerStream.RecvMsg(m); err != nil {
+func _WorkerService_GetAllBook_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetAllBookRequest)
+	if err := dec(in); err != nil {
 		return nil, err
 	}
-	return m, nil
+	if interceptor == nil {
+		return srv.(WorkerServiceServer).GetAllBook(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/Services.WorkerService/GetAllBook",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(WorkerServiceServer).GetAllBook(ctx, req.(*GetAllBookRequest))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
 func _WorkerService_GetBookNum_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -394,6 +396,42 @@ func _WorkerService_GetBookNum_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
+func _WorkerService_BuyBook_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(BuyBookRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(WorkerServiceServer).BuyBook(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/Services.WorkerService/BuyBook",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(WorkerServiceServer).BuyBook(ctx, req.(*BuyBookRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _WorkerService_GetBooksByAuthor_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetBooksByAuthorRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(WorkerServiceServer).GetBooksByAuthor(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/Services.WorkerService/GetBooksByAuthor",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(WorkerServiceServer).GetBooksByAuthor(ctx, req.(*GetBooksByAuthorRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // WorkerService_ServiceDesc is the grpc.ServiceDesc for WorkerService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -402,17 +440,22 @@ var WorkerService_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*WorkerServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
+			MethodName: "GetAllBook",
+			Handler:    _WorkerService_GetAllBook_Handler,
+		},
+		{
 			MethodName: "GetBookNum",
 			Handler:    _WorkerService_GetBookNum_Handler,
 		},
-	},
-	Streams: []grpc.StreamDesc{
 		{
-			StreamName:    "GetAllBook",
-			Handler:       _WorkerService_GetAllBook_Handler,
-			ServerStreams: true,
-			ClientStreams: true,
+			MethodName: "BuyBook",
+			Handler:    _WorkerService_BuyBook_Handler,
+		},
+		{
+			MethodName: "GetBooksByAuthor",
+			Handler:    _WorkerService_GetBooksByAuthor_Handler,
 		},
 	},
+	Streams:  []grpc.StreamDesc{},
 	Metadata: "ServiceProto.proto",
 }

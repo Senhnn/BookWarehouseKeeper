@@ -1,6 +1,10 @@
 Server:
   IP: 127.0.0.1
   Port: 5000
+  GrpcLogPath: "log/grpclog.txt"
+  GlobalLogPath: "log/globallog.txt"
+  admin: "admin"
+  passwd: "1234"
 
 Redis:
   IP: 47.103.116.215
